@@ -1,0 +1,336 @@
+# aplicativo-pbl
+
+-- -----------------------------------------------------
+-- Schema seam
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `seam` DEFAULT CHARACTER SET utf8 ;
+USE `seam` ;
+
+-- -----------------------------------------------------
+-- Table `seam`.`estado`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `seam`.`estado` (
+  `estado_id` INT(2) NOT NULL,
+  `nome_estado` VARCHAR(20) NOT NULL,
+  `pais` VARCHAR(10) NOT NULL,
+  PRIMARY KEY (`estado_id`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `seam`.`cidade`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `seam`.`cidade` (
+  `cidade_id` INT(5) NOT NULL AUTO_INCREMENT,
+  `nome_cidade` VARCHAR(45) NOT NULL,
+  `estado_id` INT(2) NOT NULL,
+  PRIMARY KEY (`cidade_id`),
+  INDEX `fk_cidade_estado1_idx` (`estado_id` ASC),
+  CONSTRAINT `fk_cidade_estado1`
+    FOREIGN KEY (`estado_id`)
+    REFERENCES `seam`.`estado` (`estado_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `seam`.`endereco`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `seam`.`endereco` (
+  `endereco_id` INT(5) NOT NULL AUTO_INCREMENT,
+  `rua` VARCHAR(50) NOT NULL,
+  `numero` INT(6) NOT NULL,
+  `complemento` VARCHAR(30) NOT NULL,
+  `bairro` VARCHAR(30) NOT NULL,
+  `cidade_id` INT(5) NOT NULL,
+  `cep` VARCHAR(8) NOT NULL,
+  PRIMARY KEY (`endereco_id`),
+  INDEX `fk_endereco_cidade1_idx` (`cidade_id` ASC),
+  CONSTRAINT `fk_endereco_cidade1`
+    FOREIGN KEY (`cidade_id`)
+    REFERENCES `seam`.`cidade` (`cidade_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+
+
+-- -----------------------------------------------------
+-- Table `seam`.`categoria`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `seam`.`categoria` (
+  `id_categoria` INT(3) NOT NULL,
+  `nome_categoria` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`id_categoria`),
+  UNIQUE INDEX `id_categoria_UNIQUE` (`id_categoria` ASC))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `seam`.`servico`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `seam`.`servico` (
+  `id_servico` INT(7) NOT NULL,
+  `nome_servico` VARCHAR(30) NOT NULL,
+  `descricao_servico` TEXT NOT NULL,
+  `id_categoria` INT(3) NOT NULL,
+  PRIMARY KEY (`id_servico`),
+  INDEX `fk_servico_categoria1_idx` (`id_categoria` ASC),
+  CONSTRAINT `fk_servico_categoria1`
+    FOREIGN KEY (`id_categoria`)
+    REFERENCES `seam`.`categoria` (`id_categoria`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+
+
+-- -----------------------------------------------------
+-- Table `seam`.`usuario`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `seam`.`usuario` (
+  `id_usuario` INT(5) NOT NULL,
+  `cpf` VARCHAR(14) NOT NULL,
+  `senha` VARCHAR(50) NOT NULL,
+  `nome_usuario` VARCHAR(20) NOT NULL,
+  `sobrenome_usuario` VARCHAR(50) NOT NULL,
+  `email_usuario` VARCHAR(50) NOT NULL,
+  `telefone_usuario` VARCHAR(15) NOT NULL,
+  `data_nascimento` DATE NOT NULL,
+  `endereco_id` INT(5) NOT NULL,
+  `id_servico` INT(7) NOT NULL,
+  PRIMARY KEY (`id_usuario`),
+  UNIQUE INDEX `cpf_UNIQUE` (`cpf` ASC),
+  UNIQUE INDEX `id_usuario_UNIQUE` (`id_usuario` ASC),
+  INDEX `fk_usuario_endereco1_idx` (`endereco_id` ASC),
+  INDEX `fk_usuario_servico1_idx` (`id_servico` ASC),
+  CONSTRAINT `fk_usuario_endereco1`
+    FOREIGN KEY (`endereco_id`)
+    REFERENCES `seam`.`endereco` (`endereco_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_usuario_servico1`
+    FOREIGN KEY (`id_servico`)
+    REFERENCES `seam`.`servico` (`id_servico`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+
+
+-- -----------------------------------------------------
+-- Table `seam`.`solicitacao`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `seam`.`solicitacao` (
+  `id_solicitacao` INT(7) NOT NULL,
+  `data_solicitacao` DATE NOT NULL,
+  `status` TINYINT(1) NOT NULL,
+  `avalia_cliente` VARCHAR(30) NULL DEFAULT NULL,
+  `avalia_prestador` VARCHAR(30) NULL,
+  `id_servico` INT(7) NOT NULL,
+  `id_usuario` INT(5) NOT NULL,
+  PRIMARY KEY (`id_solicitacao`),
+  UNIQUE INDEX `pedido_id_UNIQUE` (`id_solicitacao` ASC),
+  INDEX `fk_solicitacao_servico1_idx` (`id_servico` ASC),
+  INDEX `fk_solicitacao_usuario1_idx` (`id_usuario` ASC),
+  CONSTRAINT `fk_solicitacao_servico1`
+    FOREIGN KEY (`id_servico`)
+    REFERENCES `seam`.`servico` (`id_servico`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_solicitacao_usuario1`
+    FOREIGN KEY (`id_usuario`)
+    REFERENCES `seam`.`usuario` (`id_usuario`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `seam`.`imagem`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `seam`.`imagem` (
+  `id_imagem` INT(7) NOT NULL,
+  `descricao_img` TEXT NOT NULL,
+  `id_servico` INT(7) NOT NULL,
+  `id_usuario` INT(5) NOT NULL,
+  PRIMARY KEY (`id_imagem`),
+  UNIQUE INDEX `imagem_id_UNIQUE` (`id_imagem` ASC),
+  INDEX `fk_imagem_servico1_idx` (`id_servico` ASC),
+  INDEX `fk_imagem_usuario1_idx` (`id_usuario` ASC),
+  CONSTRAINT `fk_imagem_servico1`
+    FOREIGN KEY (`id_servico`)
+    REFERENCES `seam`.`servico` (`id_servico`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_imagem_usuario1`
+    FOREIGN KEY (`id_usuario`)
+    REFERENCES `seam`.`usuario` (`id_usuario`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `seam`.`comentarios`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `seam`.`comentarios` (
+  `id_comentario` INT NOT NULL AUTO_INCREMENT,
+  `text_comentario` TEXT NOT NULL,
+  `data_comentario` DATE NOT NULL,
+  `id_usuario` INT(5) NOT NULL,
+  `id_solicitacao` INT(7) NOT NULL,
+  PRIMARY KEY (`id_comentario`),
+  UNIQUE INDEX `id_comentario_UNIQUE` (`id_comentario` ASC),
+  INDEX `fk_comentarios_usuario1_idx` (`id_usuario` ASC),
+  INDEX `fk_comentarios_solicitacao1_idx` (`id_solicitacao` ASC),
+  CONSTRAINT `fk_comentarios_usuario1`
+    FOREIGN KEY (`id_usuario`)
+    REFERENCES `seam`.`usuario` (`id_usuario`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_comentarios_solicitacao1`
+    FOREIGN KEY (`id_solicitacao`)
+    REFERENCES `seam`.`solicitacao` (`id_solicitacao`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
+-- -----------------------------------------------------
+-- Data for table `seam`.`estado`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `seam`;
+INSERT INTO `seam`.`estado` (`estado_id`, `nome_estado`, `pais`) VALUES (1, 'Paraná', 'Brasil');
+INSERT INTO `seam`.`estado` (`estado_id`, `nome_estado`, `pais`) VALUES (2, 'Santa Catarina', 'Brasil');
+
+COMMIT;
+
+
+-- -----------------------------------------------------
+-- Data for table `seam`.`cidade`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `seam`;
+INSERT INTO `seam`.`cidade` (`cidade_id`, `nome_cidade`, `estado_id`) VALUES (1, 'Araucária', 1);
+INSERT INTO `seam`.`cidade` (`cidade_id`, `nome_cidade`, `estado_id`) VALUES (2, 'Colombo', 1);
+INSERT INTO `seam`.`cidade` (`cidade_id`, `nome_cidade`, `estado_id`) VALUES (3, 'Curitiba', 1);
+INSERT INTO `seam`.`cidade` (`cidade_id`, `nome_cidade`, `estado_id`) VALUES (4, 'Pinhais', 1);
+
+COMMIT;
+
+
+-- -----------------------------------------------------
+-- Data for table `seam`.`endereco`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `seam`;
+INSERT INTO `seam`.`endereco` (`endereco_id`, `rua`, `numero`, `complemento`, `bairro`, `cidade_id`, `cep`) VALUES (1, 'Rua anjo da luz', 115, 'terreo', 'Barreirinha', 3, '81230325');
+INSERT INTO `seam`.`endereco` (`endereco_id`, `rua`, `numero`, `complemento`, `bairro`, `cidade_id`, `cep`) VALUES (2, 'Rua anna bendett', 105, 'apto 124', 'Boqueirão', 3, '82120150');
+INSERT INTO `seam`.`endereco` (`endereco_id`, `rua`, `numero`, `complemento`, `bairro`, `cidade_id`, `cep`) VALUES (3, 'Rua anne frank ', 110, 'casa 2', 'Agua Verde', 3, '81730010');
+INSERT INTO `seam`.`endereco` (`endereco_id`, `rua`, `numero`, `complemento`, `bairro`, `cidade_id`, `cep`) VALUES (4, 'Rua Honduras', 425, '', 'São Gabriel', 2, '83404760');
+INSERT INTO `seam`.`endereco` (`endereco_id`, `rua`, `numero`, `complemento`, `bairro`, `cidade_id`, `cep`) VALUES (5, 'Rua anita garibaldi', 45, 'casa', 'Hauer', 3, '80540400');
+INSERT INTO `seam`.`endereco` (`endereco_id`, `rua`, `numero`, `complemento`, `bairro`, `cidade_id`, `cep`) VALUES (6, 'Rua  anna bora', 87, 'casa 2', 'Guabirotuba', 3, '81490180');
+INSERT INTO `seam`.`endereco` (`endereco_id`, `rua`, `numero`, `complemento`, `bairro`, `cidade_id`, `cep`) VALUES (7, 'Rua anna de macedo portugal', 213, 'apto 222', 'Uberaba', 3, '81490586');
+INSERT INTO `seam`.`endereco` (`endereco_id`, `rua`, `numero`, `complemento`, `bairro`, `cidade_id`, `cep`) VALUES (8, 'Rua andre klug', 1483, 'apto 48', 'Hauer', 3, '82700130');
+INSERT INTO `seam`.`endereco` (`endereco_id`, `rua`, `numero`, `complemento`, `bairro`, `cidade_id`, `cep`) VALUES (9, 'Travessa André Haag', 105, 'casa', 'Cristo Rei', 3, '81050615');
+INSERT INTO `seam`.`endereco` (`endereco_id`, `rua`, `numero`, `complemento`, `bairro`, `cidade_id`, `cep`) VALUES (10, 'Av. pres. kennedy', 1000, 'hipermercado', 'Água Verde', 3, '80220201');
+INSERT INTO `seam`.`endereco` (`endereco_id`, `rua`, `numero`, `complemento`, `bairro`, `cidade_id`, `cep`) VALUES (11, 'Rua andre cecone', 504, 'casa', 'Tatuquara', 3, '80740530');
+INSERT INTO `seam`.`endereco` (`endereco_id`, `rua`, `numero`, `complemento`, `bairro`, `cidade_id`, `cep`) VALUES (12, 'Rua luiz guimarães JR', 115, 'casa 2', 'Guabirotuba', 4, '81510340');
+INSERT INTO `seam`.`endereco` (`endereco_id`, `rua`, `numero`, `complemento`, `bairro`, `cidade_id`, `cep`) VALUES (13, 'Av. marechal umberto de a. castelo branco', 230, 'hipermercado', 'Cristo Rei', 3, '82530195');
+INSERT INTO `seam`.`endereco` (`endereco_id`, `rua`, `numero`, `complemento`, `bairro`, `cidade_id`, `cep`) VALUES (14, 'Rua amazonas', 79, DEFAULT, 'Cajuru', 3, '80610030');
+INSERT INTO `seam`.`endereco` (`endereco_id`, `rua`, `numero`, `complemento`, `bairro`, `cidade_id`, `cep`) VALUES (15, 'Rua aristóteles', 117, DEFAULT, 'Campo Comprido', 3, '82700010');
+INSERT INTO `seam`.`endereco` (`endereco_id`, `rua`, `numero`, `complemento`, `bairro`, `cidade_id`, `cep`) VALUES (16, 'Av. Paraná', 3750, 'Apto 42', 'Boa Vista', 3, '80035-130');
+INSERT INTO `seam`.`endereco` (`endereco_id`, `rua`, `numero`, `complemento`, `bairro`, `cidade_id`, `cep`) VALUES (17, 'Rua João Gbur', 700, DEFAULT, 'Santa Candida', 3, '82640-000');
+
+COMMIT;
+
+
+-- -----------------------------------------------------
+-- Data for table `seam`.`servico`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `seam`;
+INSERT INTO `seam`.`servico` (`id_servico`, `nome_servico`, `descricao_servico`, `id_categoria`) VALUES (1, '2017-11-23', 'Meus produtos e serviços', DEFAULT);
+INSERT INTO `seam`.`servico` (`id_servico`, `nome_servico`, `descricao_servico`, `id_categoria`) VALUES (2, '2017-11-23', 'Minhas criações', DEFAULT);
+INSERT INTO `seam`.`servico` (`id_servico`, `nome_servico`, `descricao_servico`, `id_categoria`) VALUES (3, '2017-11-24', 'Garanto qualidade do meu serviço', DEFAULT);
+INSERT INTO `seam`.`servico` (`id_servico`, `nome_servico`, `descricao_servico`, `id_categoria`) VALUES (4, '2017-11-26', 'Serviços em geral', DEFAULT);
+INSERT INTO `seam`.`servico` (`id_servico`, `nome_servico`, `descricao_servico`, `id_categoria`) VALUES (5, '2017-11-29', 'Roupas sob medida', DEFAULT);
+
+COMMIT;
+
+
+-- -----------------------------------------------------
+-- Data for table `seam`.`usuario`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `seam`;
+INSERT INTO `seam`.`usuario` (`id_usuario`, `cpf`, `senha`, `nome_usuario`, `sobrenome_usuario`, `email_usuario`, `telefone_usuario`, `data_nascimento`, `endereco_id`, `id_servico`) VALUES (1, '72823892176', '123456a', 'Daniela', 'Targaryan', 'daniela.t@gmail.com', '4135931610', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`usuario` (`id_usuario`, `cpf`, `senha`, `nome_usuario`, `sobrenome_usuario`, `email_usuario`, `telefone_usuario`, `data_nascimento`, `endereco_id`, `id_servico`) VALUES (2, '71656348357', '123456b', 'Joana', 'Machado', 'joana.m@gmail.com', '4135253613', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`usuario` (`id_usuario`, `cpf`, `senha`, `nome_usuario`, `sobrenome_usuario`, `email_usuario`, `telefone_usuario`, `data_nascimento`, `endereco_id`, `id_servico`) VALUES (3, '00453243363', '123456c', 'Hermione ', 'Granger', 'hermione.g@gmail.com', '4135931625', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`usuario` (`id_usuario`, `cpf`, `senha`, `nome_usuario`, `sobrenome_usuario`, `email_usuario`, `telefone_usuario`, `data_nascimento`, `endereco_id`, `id_servico`) VALUES (4, '17645625341', '123456d', 'Lara ', 'Croft', 'lara.c@gmail.com', '4135663611', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`usuario` (`id_usuario`, `cpf`, `senha`, `nome_usuario`, `sobrenome_usuario`, `email_usuario`, `telefone_usuario`, `data_nascimento`, `endereco_id`, `id_servico`) VALUES (5, '64424764133', '123456e', 'Mafalda', 'Matias', 'mafalda.m@gmail.com', '4135254124', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`usuario` (`id_usuario`, `cpf`, `senha`, `nome_usuario`, `sobrenome_usuario`, `email_usuario`, `telefone_usuario`, `data_nascimento`, `endereco_id`, `id_servico`) VALUES (6, '56751076495', 'a123456', 'Glória', 'Pires', 'gloria.p@gmail.com', '4136214830', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`usuario` (`id_usuario`, `cpf`, `senha`, `nome_usuario`, `sobrenome_usuario`, `email_usuario`, `telefone_usuario`, `data_nascimento`, `endereco_id`, `id_servico`) VALUES (7, '34653947635', 'b123456', 'Fernanda', 'Montenegro', 'fernanda.m@gmail.com', '4136663366', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`usuario` (`id_usuario`, `cpf`, `senha`, `nome_usuario`, `sobrenome_usuario`, `email_usuario`, `telefone_usuario`, `data_nascimento`, `endereco_id`, `id_servico`) VALUES (8, '76387963656', 'c123456', 'Tony', 'Stark', 'tony@stark.com', '4135252458', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`usuario` (`id_usuario`, `cpf`, `senha`, `nome_usuario`, `sobrenome_usuario`, `email_usuario`, `telefone_usuario`, `data_nascimento`, `endereco_id`, `id_servico`) VALUES (9, '77838664411', 'd123456', 'Bruce', 'Wayne', 'bruce@wayne.com', '4137988855', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`usuario` (`id_usuario`, `cpf`, `senha`, `nome_usuario`, `sobrenome_usuario`, `email_usuario`, `telefone_usuario`, `data_nascimento`, `endereco_id`, `id_servico`) VALUES (10, '47250922661', 'e123456', 'Débora', 'Santos', 'debora.s@gmail.com', '4136661053', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`usuario` (`id_usuario`, `cpf`, `senha`, `nome_usuario`, `sobrenome_usuario`, `email_usuario`, `telefone_usuario`, `data_nascimento`, `endereco_id`, `id_servico`) VALUES (11, '16765691707', '123456ab', 'Diana', 'Price', 'diana.p@gmail.com', '4136060606', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`usuario` (`id_usuario`, `cpf`, `senha`, `nome_usuario`, `sobrenome_usuario`, `email_usuario`, `telefone_usuario`, `data_nascimento`, `endereco_id`, `id_servico`) VALUES (12, '58701836935', '123456ac', 'Peter', 'Parker', 'peter.p@gmail.com', '4136957487', DEFAULT, DEFAULT, DEFAULT);
+
+COMMIT;
+
+
+-- -----------------------------------------------------
+-- Data for table `seam`.`solicitacao`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `seam`;
+INSERT INTO `seam`.`solicitacao` (`id_solicitacao`, `data_solicitacao`, `status`, `avalia_cliente`, `avalia_prestador`, `id_servico`, `id_usuario`) VALUES (1, '20/11/17', DEFAULT, '', NULL, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`solicitacao` (`id_solicitacao`, `data_solicitacao`, `status`, `avalia_cliente`, `avalia_prestador`, `id_servico`, `id_usuario`) VALUES (2, '20/11/17', DEFAULT, NULL, NULL, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`solicitacao` (`id_solicitacao`, `data_solicitacao`, `status`, `avalia_cliente`, `avalia_prestador`, `id_servico`, `id_usuario`) VALUES (3, '19/11/17', DEFAULT, NULL, NULL, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`solicitacao` (`id_solicitacao`, `data_solicitacao`, `status`, `avalia_cliente`, `avalia_prestador`, `id_servico`, `id_usuario`) VALUES (4, '19/11/17', DEFAULT, NULL, NULL, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`solicitacao` (`id_solicitacao`, `data_solicitacao`, `status`, `avalia_cliente`, `avalia_prestador`, `id_servico`, `id_usuario`) VALUES (5, '21/11/17', DEFAULT, NULL, NULL, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`solicitacao` (`id_solicitacao`, `data_solicitacao`, `status`, `avalia_cliente`, `avalia_prestador`, `id_servico`, `id_usuario`) VALUES (6, '22/11/17', DEFAULT, NULL, NULL, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`solicitacao` (`id_solicitacao`, `data_solicitacao`, `status`, `avalia_cliente`, `avalia_prestador`, `id_servico`, `id_usuario`) VALUES (7, '21/11/17', DEFAULT, NULL, NULL, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`solicitacao` (`id_solicitacao`, `data_solicitacao`, `status`, `avalia_cliente`, `avalia_prestador`, `id_servico`, `id_usuario`) VALUES (8, '18/11/17', DEFAULT, NULL, NULL, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`solicitacao` (`id_solicitacao`, `data_solicitacao`, `status`, `avalia_cliente`, `avalia_prestador`, `id_servico`, `id_usuario`) VALUES (9, '18/11/17', DEFAULT, NULL, NULL, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`solicitacao` (`id_solicitacao`, `data_solicitacao`, `status`, `avalia_cliente`, `avalia_prestador`, `id_servico`, `id_usuario`) VALUES (10, '21/11/17', DEFAULT, NULL, NULL, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`solicitacao` (`id_solicitacao`, `data_solicitacao`, `status`, `avalia_cliente`, `avalia_prestador`, `id_servico`, `id_usuario`) VALUES (11, '22/11/17', DEFAULT, NULL, NULL, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`solicitacao` (`id_solicitacao`, `data_solicitacao`, `status`, `avalia_cliente`, `avalia_prestador`, `id_servico`, `id_usuario`) VALUES (12, '23/11/17', DEFAULT, NULL, NULL, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`solicitacao` (`id_solicitacao`, `data_solicitacao`, `status`, `avalia_cliente`, `avalia_prestador`, `id_servico`, `id_usuario`) VALUES (13, '17/11/17', DEFAULT, NULL, NULL, DEFAULT, DEFAULT);
+INSERT INTO `seam`.`solicitacao` (`id_solicitacao`, `data_solicitacao`, `status`, `avalia_cliente`, `avalia_prestador`, `id_servico`, `id_usuario`) VALUES (14, '17/11/17', DEFAULT, NULL, NULL, DEFAULT, DEFAULT);
+
+COMMIT;
+
+
+-- -----------------------------------------------------
+-- Data for table `seam`.`imagem`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `seam`;
+INSERT INTO `seam`.`imagem` (`id_imagem`, `descricao_img`, `id_servico`, `id_usuario`) VALUES (1, 'Camiseta', DEFAULT, DEFAULT);
+
+COMMIT;
+
+
+-- -----------------------------------------------------
+-- Data for table `seam`.`comentarios`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `seam`;
+INSERT INTO `seam`.`comentarios` (`id_comentario`, `text_comentario`, `data_comentario`, `id_usuario`, `id_solicitacao`) VALUES (1, '1', '15', DEFAULT, DEFAULT);
+INSERT INTO `seam`.`comentarios` (`id_comentario`, `text_comentario`, `data_comentario`, `id_usuario`, `id_solicitacao`) VALUES (DEFAULT, '2', '10', DEFAULT, DEFAULT);
+INSERT INTO `seam`.`comentarios` (`id_comentario`, `text_comentario`, `data_comentario`, `id_usuario`, `id_solicitacao`) VALUES (DEFAULT, '2', '20', DEFAULT, DEFAULT);
+INSERT INTO `seam`.`comentarios` (`id_comentario`, `text_comentario`, `data_comentario`, `id_usuario`, `id_solicitacao`) VALUES (DEFAULT, '1', '25', DEFAULT, DEFAULT);
+INSERT INTO `seam`.`comentarios` (`id_comentario`, `text_comentario`, `data_comentario`, `id_usuario`, `id_solicitacao`) VALUES (DEFAULT, '3', '20', DEFAULT, DEFAULT);
+INSERT INTO `seam`.`comentarios` (`id_comentario`, `text_comentario`, `data_comentario`, `id_usuario`, `id_solicitacao`) VALUES (DEFAULT, '4', '10', DEFAULT, DEFAULT);
+INSERT INTO `seam`.`comentarios` (`id_comentario`, `text_comentario`, `data_comentario`, `id_usuario`, `id_solicitacao`) VALUES (DEFAULT, '2', '15', DEFAULT, DEFAULT);
+INSERT INTO `seam`.`comentarios` (`id_comentario`, `text_comentario`, `data_comentario`, `id_usuario`, `id_solicitacao`) VALUES (DEFAULT, '2', '35', DEFAULT, DEFAULT);
+INSERT INTO `seam`.`comentarios` (`id_comentario`, `text_comentario`, `data_comentario`, `id_usuario`, `id_solicitacao`) VALUES (DEFAULT, '3', '25', DEFAULT, DEFAULT);
+INSERT INTO `seam`.`comentarios` (`id_comentario`, `text_comentario`, `data_comentario`, `id_usuario`, `id_solicitacao`) VALUES (DEFAULT, '3', '10', DEFAULT, DEFAULT);
+INSERT INTO `seam`.`comentarios` (`id_comentario`, `text_comentario`, `data_comentario`, `id_usuario`, `id_solicitacao`) VALUES (DEFAULT, '4', '20', DEFAULT, DEFAULT);
+INSERT INTO `seam`.`comentarios` (`id_comentario`, `text_comentario`, `data_comentario`, `id_usuario`, `id_solicitacao`) VALUES (DEFAULT, '2', '15', DEFAULT, DEFAULT);
+INSERT INTO `seam`.`comentarios` (`id_comentario`, `text_comentario`, `data_comentario`, `id_usuario`, `id_solicitacao`) VALUES (DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
+
+COMMIT;
